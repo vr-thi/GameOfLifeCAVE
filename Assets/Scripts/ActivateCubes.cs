@@ -1,51 +1,57 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;   
 using UnityEngine;
 using Cave;
 
-public class ActivateCubes : CollisionSynchronization {
-	private GameObject flyStick;
-	private LaserswordFlystick laserswordFlystick;
-	private GameOfLife gameOfLife;
+public class ActivateCubes : CollisionSynchronization
+{
+    [SerializeField]
+    private GameOfLife gameOfLife;
+    [SerializeField]
+    private LaserswordFlystick laserswordFlystick;
 
-	public ActivateCubes() : base(new[] {Cave.EventType.OnTriggerStay})
-	{
+    private GameObject flyStick;
+    private bool initialized = false;
 
-	}
+    public ActivateCubes() : base(new[] { Cave.EventType.OnTriggerStay })
+    {
 
-	// Use this for initialization
-	void Start () {
-		flyStick = GameObject.Find ("Flystick").gameObject;
-		laserswordFlystick = (LaserswordFlystick) GameObject.Find ("Handle").gameObject.GetComponent ("LaserswordFlystick");
-		GameObject cubeManager = GameObject.Find ("CubeManager");
-		if (cubeManager != null) {
-			gameOfLife = (GameOfLife)cubeManager.gameObject.GetComponent ("GameOfLife");
-		}
-	}
+    }
 
-	void Update() {
-	}
+    // Use this for initialization
+    void Start()
+    {
+        if (gameOfLife == null || laserswordFlystick == null)
+        {
+            Debug.LogError("Assign variables in inspector before resuming");
+        }
+        StartCoroutine(WaitForFlystick());
+    }
 
-	private void Reset(){
-	}
+    private IEnumerator WaitForFlystick()
+    {
+        while (flyStick == null)
+        {
+            flyStick = GameObject.Find("Flystick");
+            yield return null;
+        }
+        initialized = true;
+    }
 
-	public override void OnSynchronizedTriggerStay(GameObject other){
-		if (other.name == "Lasersword") {
-			if (flyStick == null) {
-				flyStick = GameObject.Find ("Flystick").gameObject;
-			} else {
-				var forward = flyStick.transform.TransformDirection (Vector3.forward);
-				// Debug.Log ("forward:" + forward);
-				if (System.Math.Abs (forward.y) > 1e-4f) {
-					float lambda = -flyStick.transform.position.y / forward.y;
-					float x = flyStick.transform.position.x + lambda * forward.x;
-					float z = flyStick.transform.position.z + lambda * forward.z;
-					// Debug.Log ("x = " + x + ", z = " + z);
-					if (gameOfLife != null && gameOfLife.enabled == true) {
-						gameOfLife.activate (x, z, laserswordFlystick.getColor ());
-					}
-				}
-			}
-		}
-	}
+    public override void OnSynchronizedTriggerStay(GameObject other)
+    {
+        if (initialized && other.name == "Lasersword")
+        {
+            var forward = flyStick.transform.TransformDirection(Vector3.forward);
+            if (System.Math.Abs(forward.y) > 1e-4f)
+            {
+                float lambda = -flyStick.transform.position.y / forward.y;
+                float x = flyStick.transform.position.x + lambda * forward.x;
+                float z = flyStick.transform.position.z + lambda * forward.z;
+                if (gameOfLife != null && gameOfLife.enabled == true)
+                {
+                    gameOfLife.activate(x, z, laserswordFlystick.GetColor());
+                }
+            }
+        }
+    }
 }

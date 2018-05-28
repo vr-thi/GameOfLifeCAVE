@@ -6,4 +6,5 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/_Scenes/myScene.unity
+    path: Assets/_Scenes/GameOfLife.unity
+    guid: cc4d9672148d74878b78c5075fa1707b
