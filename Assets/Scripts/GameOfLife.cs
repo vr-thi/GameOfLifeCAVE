@@ -5,12 +5,15 @@ using Cave;
 
 public class GameOfLife : MonoBehaviour
 {
-    public GameObject cube;
-    public float speed = 0.1f;
-    public Transform center;
+    [SerializeField]
+    private GameObject cube;
+    [SerializeField]
+    private float speed = 0.1f;
+    [SerializeField]
+    private Transform gamePlane;
 
     private const int N = 25;
-    private const int MAX_TIMESTEPS = 25;
+private const int MAX_TIMESTEPS = 25;
     private GameObject[,,] cubearr = new GameObject[MAX_TIMESTEPS, N, N];
     private bool[,,] alive = new bool[MAX_TIMESTEPS, N, N];
     private float dynSpeed;
@@ -24,6 +27,12 @@ public class GameOfLife : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        Vector3 gameBounds = gamePlane.gameObject.GetComponent<MeshCollider>().bounds.size;
+        if (gameBounds.x != gameBounds.z) {
+            Debug.LogError("Plane for Game of Life needs to be quadratic");
+        }
+        cubeSize = (gameBounds.x) / N;
+
         centerTrans = cubeSize * (-0.5f * N + 0.5f);
         dynSpeed = speed;
         for (int timestep = 0; timestep < MAX_TIMESTEPS; timestep++)
@@ -32,7 +41,7 @@ public class GameOfLife : MonoBehaviour
             {
                 for (int j = 0; j < N; j++)
                 {
-                    cubearr[timestep, i, j] = (GameObject)Instantiate(cube, new Vector3(0f, 0f, 0f), Quaternion.identity);
+                    cubearr[timestep, i, j] = (GameObject)Instantiate(cube, new Vector3(discreteToContinousX(i), 0f, discreteToContinousZ(j)), Quaternion.identity);
                     cubearr[timestep, i, j].transform.localScale = new Vector3(cubeSize, cubeSize, cubeSize);
                     cubearr[timestep, i, j].GetComponent<Renderer>().enabled = false;
                     alive[timestep, i, j] = false;
@@ -78,6 +87,26 @@ public class GameOfLife : MonoBehaviour
         return new Color(r / 3, g / 3, b / 3);
     }
 
+    private float discreteToContinousX(int i)
+    {
+        return i * cubeSize + centerTrans + gamePlane.position.x; ;
+    }
+
+    private float discreteToContinousZ(int j)
+    {
+        return j * cubeSize + centerTrans + gamePlane.position.z;
+    }
+
+    private int continousToDiscreteX(float x)
+    {
+        return (int)((x - centerTrans - gamePlane.position.x) / cubeSize);
+    }
+
+    private int continousToDiscreteZ(float z)
+    {
+        return (int)((z - centerTrans - gamePlane.position.z) / cubeSize);
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -90,7 +119,7 @@ public class GameOfLife : MonoBehaviour
                 {
                     if (Random.value > 0.33333f)
                     {
-                        cubearr[0, i, j].transform.position = new Vector3(i * cubeSize + centerTrans + center.position.x, -0.5f * cubeSize, j * cubeSize + center.position.z);
+                        cubearr[0, i, j].transform.position = new Vector3(discreteToContinousX(i), -0.5f * cubeSize, discreteToContinousZ(j));
                         cubearr[0, i, j].GetComponent<Renderer>().enabled = true;
                         alive[0, i, j] = true;
                     }
@@ -148,7 +177,7 @@ public class GameOfLife : MonoBehaviour
                     if (neigh == 3 || neigh == 2 && alive[prev, i, j])
                     {
                         alive[active, i, j] = true;
-                        cubearr[active, i, j].transform.position = new Vector3(i * cubeSize + centerTrans + center.position.x, basey, j * cubeSize + centerTrans + center.position.z);
+                        cubearr[active, i, j].transform.position = new Vector3(discreteToContinousX(i), basey, discreteToContinousZ(j));
                         cubearr[active, i, j].GetComponent<Renderer>().enabled = true;
                         // set colors
                         if (alive[prev, i, j])
@@ -174,13 +203,19 @@ public class GameOfLife : MonoBehaviour
 
     public void activate(float x, float z, Color color)
     {
-        int i = (int)((x - centerTrans - center.position.x) / cubeSize);
-        int j = (int)((z - centerTrans - center.position.z) / cubeSize);
-        if (i >= 0 && i < N && j >= 0 && j < N && !alive[active, i, j])
+        int i = continousToDiscreteX(x);
+        int j = continousToDiscreteZ(z);
+        if (i >= 0 && i < N && j >= 0 && j < N)
         {
-            alive[active, i, j] = true;
-            cubearr[active, i, j].GetComponent<Renderer>().enabled = true;
+            if (!alive[active, i, j])
+            {
+                alive[active, i, j] = true;
+                cubearr[active, i, j].GetComponent<Renderer>().enabled = true;
+                cubearr[active, i, j].name = x + "," + z + "," + i + "," + j;
+            }
+            cubearr[active, i, j].GetComponent<Renderer>().material.SetColor("_Color", color);
         }
-        cubearr[active, i, j].GetComponent<Renderer>().material.SetColor("_Color", color);
+        
+//        Debug.Log(x + " " + z + " " + i + " " + j);
     }
 }

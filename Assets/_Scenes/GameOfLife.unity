@@ -250,7 +250,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 323204626}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1.5}
+  m_LocalPosition: {x: 0, y: 0, z: 2}
   m_LocalScale: {x: 0.3, y: 1, z: 0.3}
   m_Children: []
   m_Father: {fileID: 0}
@@ -471,7 +471,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cube: {fileID: 1827371880609986, guid: 4165364ffe1d74af0979718a8a378730, type: 2}
   speed: 0.47
-  center: {fileID: 323204630}
+  gamePlane: {fileID: 323204630}
 --- !u!4 &689019077
 Transform:
   m_ObjectHideFlags: 0
